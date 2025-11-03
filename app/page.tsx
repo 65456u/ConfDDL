@@ -261,12 +261,26 @@ export default function Home() {
     key: "default",
     direction: "asc",
   });
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const grouped = useMemo(() => {
@@ -334,6 +348,10 @@ export default function Home() {
       }
       return { key, direction: "asc" };
     });
+  };
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleViewChange = (next: ViewMode) => {
@@ -744,6 +762,18 @@ export default function Home() {
           </p>
         </section>
       </main>
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={handleScrollToTop}
+          className="fixed bottom-8 right-8 inline-flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-white text-2xl text-slate-600 shadow-lg transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+          aria-label="Go to top"
+        >
+          <span className="leading-none" aria-hidden="true">
+            ↑
+          </span>
+        </button>
+      )}
     </div>
   );
 }
