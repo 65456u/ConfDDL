@@ -225,7 +225,7 @@ function getLocationHref(location?: string, override?: string): string | undefin
 }
 
 function resolveAreaOrder(grouped: Grouped): string[] {
-  const referenced = new Set(areaOrder);
+  const referenced = new Set<string>(areaOrder);
   const extraAreas = Object.keys(grouped).filter(
     (area) => !referenced.has(area),
   );
