@@ -7,7 +7,7 @@ import {
   type Conference,
   conferences,
   areaOrder,
-  type RecurringDeadline,
+  type ConferenceDeadline,
 } from "@/data/conferences";
 
 type Grouped = Record<string, Conference[]>;
@@ -42,6 +42,23 @@ const areaPriority: Record<string, number> = [...areaOrder, ...DEFAULT_AREA_ORDE
   {} as Record<string, number>,
 );
 
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+const INITIAL_SORT_REFERENCE = new Date("1970-01-01T00:00:00.000Z");
+
 function pad(value: number): string {
   return value.toString().padStart(2, "0");
 }
@@ -53,24 +70,31 @@ function slugify(label: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-function getNextOccurrence(deadline: RecurringDeadline, pivot: Date): Date {
-  const baseYear = pivot.getUTCFullYear();
-  const buildDate = (year: number) =>
-    new Date(
-      `${year}-${pad(deadline.month)}-${pad(deadline.day)}T${pad(deadline.hour)}:${pad(deadline.minute)}:00${deadline.offset}`,
-    );
-
-  const candidate = buildDate(baseYear);
-  if (candidate.getTime() <= pivot.getTime()) {
-    return buildDate(baseYear + 1);
-  }
-  return candidate;
+function getDeadlineDate(deadline: ConferenceDeadline): Date {
+  return new Date(
+    `${deadline.year}-${pad(deadline.month)}-${pad(deadline.day)}T${pad(deadline.hour)}:${pad(deadline.minute)}:00${deadline.offset}`,
+  );
 }
 
-function formatCountdown(target: Date, now: Date): string {
+function deadlineDateFor(conf: Conference): Date | null {
+  if (!conf.deadline || conf.isRolling) return null;
+  return getDeadlineDate(conf.deadline);
+}
+
+function formatDeadlineLabel(deadline: ConferenceDeadline): string {
+  const timezone =
+    deadline.offset === "-12:00"
+      ? "AoE"
+      : deadline.offset === "+00:00"
+        ? "UTC"
+        : `UTC${deadline.offset}`;
+  return `${MONTH_LABELS[deadline.month - 1]} ${deadline.day}, ${deadline.year}, ${pad(deadline.hour)}:${pad(deadline.minute)} (${timezone})`;
+}
+
+function formatCountdown(target: Date, now: Date, estimated = false): string {
   const diff = target.getTime() - now.getTime();
   if (diff <= 0) {
-    return "Closed";
+    return estimated ? "Estimate passed" : "Closed";
   }
 
   const totalSeconds = Math.floor(diff / 1000);
@@ -89,26 +113,47 @@ function formatCountdown(target: Date, now: Date): string {
   return `${minutes}m ${seconds}s`;
 }
 
-function defaultCompare(
+function deadlineRank(date: Date | null, now: Date): number {
+  if (!date) return 2;
+  return date.getTime() > now.getTime() ? 0 : 1;
+}
+
+function compareByDeadline(
   a: Conference,
   b: Conference,
   now: Date,
+  direction: SortDirection = "asc",
 ): number {
-  const aHasDeadline = Boolean(a.deadline && !a.isRolling);
-  const bHasDeadline = Boolean(b.deadline && !b.isRolling);
+  const dateA = deadlineDateFor(a);
+  const dateB = deadlineDateFor(b);
+  const rankA = deadlineRank(dateA, now);
+  const rankB = deadlineRank(dateB, now);
 
-  if (aHasDeadline && bHasDeadline) {
-    const nextA = getNextOccurrence(a.deadline!, now);
-    const nextB = getNextOccurrence(b.deadline!, now);
-    if (nextA.getTime() !== nextB.getTime()) {
-      return nextA.getTime() - nextB.getTime();
-    }
-    return a.acronym.localeCompare(b.acronym);
+  if (rankA !== rankB) {
+    return rankA - rankB;
   }
 
-  if (aHasDeadline) return -1;
-  if (bHasDeadline) return 1;
-  return a.acronym.localeCompare(b.acronym);
+  if (!dateA || !dateB) {
+    return direction === "asc"
+      ? a.acronym.localeCompare(b.acronym)
+      : b.acronym.localeCompare(a.acronym);
+  }
+
+  const timeDifference =
+    rankA === 0
+      ? dateA.getTime() - dateB.getTime()
+      : dateB.getTime() - dateA.getTime();
+  if (timeDifference !== 0) {
+    return direction === "asc" ? timeDifference : -timeDifference;
+  }
+
+  return direction === "asc"
+    ? a.acronym.localeCompare(b.acronym)
+    : b.acronym.localeCompare(a.acronym);
+}
+
+function defaultCompare(a: Conference, b: Conference, now: Date): number {
+  return compareByDeadline(a, b, now);
 }
 
 function compareConferences(
@@ -145,28 +190,7 @@ function compareConferences(
     }
     case "deadline":
     case "countdown": {
-      const valueA =
-        !a.isRolling && a.deadline
-          ? getNextOccurrence(a.deadline, now).getTime()
-          : Number.POSITIVE_INFINITY;
-      const valueB =
-        !b.isRolling && b.deadline
-          ? getNextOccurrence(b.deadline, now).getTime()
-          : Number.POSITIVE_INFINITY;
-
-      const aFinite = Number.isFinite(valueA);
-      const bFinite = Number.isFinite(valueB);
-
-      if (aFinite && bFinite) {
-        if (valueA === valueB) {
-          return direction * a.acronym.localeCompare(b.acronym);
-        }
-        return direction * (valueA < valueB ? -1 : 1);
-      }
-
-      if (aFinite && !bFinite) return direction * -1;
-      if (!aFinite && bFinite) return direction * 1;
-      return direction * a.acronym.localeCompare(b.acronym);
+      return compareByDeadline(a, b, now, sort.direction);
     }
     default:
       return defaultCompare(a, b, now);
@@ -255,7 +279,7 @@ function compareAreaLabels(a?: string, b?: string): number {
 }
 
 export default function Home() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("combined");
   const [sort, setSort] = useState<SortState>({
     key: "default",
@@ -264,9 +288,12 @@ export default function Home() {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const updateNow = () => {
       setNow(new Date());
-    }, 1000);
+    };
+
+    updateNow();
+    const timer = setInterval(updateNow, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -295,33 +322,42 @@ export default function Home() {
   }, []);
 
   const areaKeys = useMemo(() => resolveAreaOrder(grouped), [grouped]);
+  const sortReference = now ?? INITIAL_SORT_REFERENCE;
 
   const sortedByArea = useMemo(() => {
     const clone: Grouped = {};
     for (const area of areaKeys) {
       const entries = grouped[area] ?? [];
       clone[area] = [...entries].sort((a, b) =>
-        compareConferences(a, b, sort, now),
+        compareConferences(a, b, sort, sortReference),
       );
     }
     return clone;
-  }, [grouped, areaKeys, now, sort]);
+  }, [grouped, areaKeys, sort, sortReference]);
 
   const combinedRows = useMemo(
     () =>
       conferences
         .map((conf) => ({ conf, area: areaLabelFor(conf) }))
-        .sort((a, b) => compareConferences(a.conf, b.conf, sort, now)),
-    [sort, now],
+        .sort((a, b) =>
+          compareConferences(a.conf, b.conf, sort, sortReference),
+        ),
+    [sort, sortReference],
   );
 
   const upcoming = useMemo(() => {
-    return conferences
-      .filter((conf) => conf.deadline && !conf.isRolling)
-      .map((conf) => ({
-        conf,
-        date: getNextOccurrence(conf.deadline!, now),
-      }))
+    if (!now) return [];
+
+    const entries: Array<{ conf: Conference; date: Date }> = [];
+
+    for (const conf of conferences) {
+      const date = deadlineDateFor(conf);
+      if (date && date.getTime() > now.getTime()) {
+        entries.push({ conf, date });
+      }
+    }
+
+    return entries
       .sort((a, b) => a.date.getTime() - b.date.getTime())
       .slice(0, 4);
   }, [now]);
@@ -362,13 +398,10 @@ export default function Home() {
   };
 
   const renderRow = (conf: Conference, areaLabel?: string) => {
-    const nextDeadline =
-      conf.deadline && !conf.isRolling
-        ? getNextOccurrence(conf.deadline, now)
-        : null;
+    const deadlineDate = deadlineDateFor(conf);
     const countdown =
-      nextDeadline && nextDeadline.getTime() > now.getTime()
-        ? formatCountdown(nextDeadline, now)
+      deadlineDate && conf.deadline && now
+        ? formatCountdown(deadlineDate, now, conf.deadline.estimated)
         : null;
     const locationHref = getLocationHref(conf.location, conf.locationUrl);
 
@@ -422,7 +455,7 @@ export default function Home() {
           {!conf.isRolling && conf.deadline && (
             <div className="flex flex-col">
               <span className="font-medium text-slate-900">
-                {conf.deadline.label}
+                {formatDeadlineLabel(conf.deadline)}
                 {conf.deadline.estimated ? " · est." : ""}
               </span>
               {conf.note && (
@@ -435,7 +468,11 @@ export default function Home() {
           )}
         </td>
         <td className="px-6 py-4 text-sm font-semibold text-emerald-600">
-          {conf.isRolling ? "Always open" : countdown ?? "Closed"}
+          {conf.isRolling
+            ? "Always open"
+            : conf.deadline
+              ? countdown ?? "Loading…"
+              : "TBA"}
         </td>
         <td className="px-6 py-4 text-sm text-slate-600">
           {conf.location ? (
@@ -472,8 +509,8 @@ export default function Home() {
             </h1>
             <p className="mt-2 max-w-xl text-sm text-slate-600 md:text-base">
               Track submission timelines for top AI, ML, robotics, and related
-              venues. Dates are based on historical schedules—always confirm
-              details on the official conference websites.
+              venues. Official dates are shown where published; estimates are
+              labeled—always confirm details on the conference website.
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 md:max-w-sm md:items-end">
@@ -515,23 +552,35 @@ export default function Home() {
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Next up
             </span>
-            <ul className="space-y-3">
-              {upcoming.map(({ conf, date }) => (
-                <li key={conf.id} className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-900">
-                      {conf.acronym}
+            {!now ? (
+              <p className="text-sm text-slate-500">Loading countdowns…</p>
+            ) : upcoming.length > 0 ? (
+              <ul className="space-y-3">
+                {upcoming.map(({ conf, date }) => (
+                  <li
+                    key={conf.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-slate-900">
+                        {conf.acronym}
+                      </span>
+                      {conf.deadline && (
+                        <span className="text-xs text-slate-500">
+                          {formatDeadlineLabel(conf.deadline)}
+                          {conf.deadline.estimated ? " · est." : ""}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs font-semibold text-emerald-600">
+                      {formatCountdown(date, now, conf.deadline?.estimated)}
                     </span>
-                    <span className="text-xs text-slate-500">
-                      {conf.deadline?.label}
-                    </span>
-                  </div>
-                  <span className="text-xs font-semibold text-emerald-600">
-                    {formatCountdown(date, now)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-500">No upcoming deadlines.</p>
+            )}
           </div>
         </div>
       </header>
