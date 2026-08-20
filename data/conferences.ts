@@ -82,8 +82,8 @@ export const conferences: Conference[] = [
     name: "International Conference on Learning Representations",
     acronym: "ICLR",
     area: "Machine Learning",
-    location: "West Coast North America (city TBA)",
-    website: "https://iclr.cc/Conferences/FutureMeetings",
+    location: "California, USA",
+    website: "https://iclr.cc/Conferences/2027",
     submissionLink: "https://iclr.cc/Conferences/2027/CallForPapers",
     deadline: {
       year: 2026,
@@ -93,15 +93,15 @@ export const conferences: Conference[] = [
       minute: 59,
       offset: "-12:00",
     },
-    note: "ICLR 2027: abstract deadline Sep 18, 2026; paper deadline Sep 25, 2026 (AoE).",
+    note: "ICLR 2027: Apr 26–30 in California (city and venue TBA); abstract deadline Sep 18, 2026; paper deadline Sep 25, 2026 (AoE).",
   },
   {
     id: "aistats",
     name: "International Conference on Artificial Intelligence and Statistics",
     acronym: "AISTATS",
     area: "Machine Learning",
-    location: "Montreal, Canada",
-    website: "https://virtual.aistats.org/Conferences/2026",
+    location: "TBD",
+    website: "https://virtual.aistats.org/Conferences/2027",
     deadline: {
       year: 2026,
       month: 10,
@@ -111,7 +111,7 @@ export const conferences: Conference[] = [
       offset: "-12:00",
       estimated: true,
     },
-    note: "AISTATS 2027 will be in Montreal, Canada; CFP pending. Estimate uses AISTATS 2026's 2025 deadlines: abstract Sep 25 and full paper Oct 2 (AoE).",
+    note: "AISTATS 2027 dates, venue, and CFP are pending. Estimate uses AISTATS 2026's 2025 deadlines: abstract Sep 25 and full paper Oct 2 (AoE).",
   },
   {
     id: "colt",
@@ -120,7 +120,6 @@ export const conferences: Conference[] = [
     area: "Machine Learning",
     location: "Tokyo, Japan",
     website: "https://learningtheory.org/colt2027/",
-    submissionLink: "https://learningtheory.org/colt2027/cfp.html",
     deadline: {
       year: 2027,
       month: 2,
@@ -148,7 +147,7 @@ export const conferences: Conference[] = [
     area: "Artificial Intelligence",
     location: "Montreal, Canada",
     website: "https://aaai.org/conference/aaai/aaai-27/",
-    submissionLink: "https://aaai.org/conference/aaai/aaai-27/",
+    submissionLink: "https://aaai.org/conference/aaai/aaai-27/main-technical-track-call/",
     deadline: {
       year: 2026,
       month: 7,
@@ -157,7 +156,7 @@ export const conferences: Conference[] = [
       minute: 59,
       offset: "-12:00",
     },
-    note: "AAAI-27 main technical track: abstract due Jul 21, 2026; full paper due Jul 28, 2026 (AoE).",
+    note: "AAAI-27 main technical track: abstract due Jul 21, 2026; full paper due Jul 28, 2026 (AoE). The conference is Feb 16–23, 2027 in Montréal.",
   },
   {
     id: "ijcai",
@@ -200,7 +199,7 @@ export const conferences: Conference[] = [
     name: "International Conference on Autonomous Agents and Multiagent Systems",
     acronym: "AAMAS",
     area: "Artificial Intelligence",
-    location: "Hanoi, Vietnam",
+    location: "JW Marriott Hotel Hanoi, Vietnam",
     website: "https://warwick.ac.uk/fac/sci/dcs/aamas2027/",
     submissionLink: "https://warwick.ac.uk/fac/sci/dcs/aamas2027/calls/",
     deadline: {
@@ -211,7 +210,7 @@ export const conferences: Conference[] = [
       minute: 59,
       offset: "-12:00",
     },
-    note: "AAMAS 2027 main technical track: abstract due Oct 1, 2026; paper due Oct 8, 2026 (end of day AoE). The conference is May 3–7, 2027 in Hanoi.",
+    note: "AAMAS 2027 main technical track: abstract due Oct 1, 2026; paper due Oct 8, 2026 (end of day AoE). The conference is May 3–7, 2027 at JW Marriott Hotel Hanoi.",
   },
   {
     id: "cvpr",
@@ -229,7 +228,7 @@ export const conferences: Conference[] = [
       offset: "-12:00",
       estimated: true,
     },
-    note: "CVPR 2027 will be in Seattle; CFP pending. Estimate uses the CVPR 2026 full-paper deadline (Nov 13, 2025; abstract due Nov 7, 2025).",
+    note: "CVPR 2027 is Jun 20–24 in Seattle; CFP pending. Estimate uses the CVPR 2026 full-paper deadline (Nov 13, 2025; abstract due Nov 7, 2025).",
   },
   {
     id: "iccv",
@@ -274,7 +273,6 @@ export const conferences: Conference[] = [
     area: "Natural Language Processing",
     location: "Kyoto, Japan",
     website: "https://2027.aclweb.org/",
-    submissionLink: "https://2027.aclweb.org/",
     deadline: {
       year: 2027,
       month: 1,
@@ -284,7 +282,7 @@ export const conferences: Conference[] = [
       offset: "-12:00",
       estimated: true,
     },
-    note: "ACL 2027 official page confirms Kyoto; all 2027 paper dates are TBA. Estimate uses the ACL 2026 ARR submission deadline (Jan 5, 2026).",
+    note: "ACL 2027 is Aug 17–22 in Kyoto; ARR and commitment dates remain TBA. Estimate uses the ACL 2026 ARR submission deadline (Jan 5, 2026).",
   },
   {
     id: "emnlp",
@@ -318,7 +316,7 @@ export const conferences: Conference[] = [
     name: "Robotics: Science and Systems",
     acronym: "RSS",
     area: "Robotics",
-    location: "TBD",
+    location: "Athens, Greece",
     website: "https://roboticsconference.org/",
     deadline: {
       year: 2027,
@@ -329,7 +327,7 @@ export const conferences: Conference[] = [
       offset: "-12:00",
       estimated: true,
     },
-    note: "RSS 2027 venue and CFP pending; estimate uses the RSS 2026 paper deadline (Jan 30, 2026; abstract due Jan 23, 2026).",
+    note: "RSS 2027 is Jul 6–11 in Athens; CFP pending. Estimate uses the RSS 2026 paper deadline (Jan 30, 2026; abstract due Jan 23, 2026).",
   },
   {
     id: "corl",
@@ -392,7 +390,7 @@ export const conferences: Conference[] = [
       minute: 59,
       offset: "-12:00",
     },
-    note: "KDD 2027 Research Track first cycle: abstract due Jul 19, 2026; paper due Jul 26, 2026 (AoE).",
+    note: "KDD 2027 Research Track first cycle: abstract due Jul 19, 2026; paper due Jul 26, 2026 (AoE). The conference is Aug 1–5 at San Jose McEnery Convention Center; the second-cycle dates are TBA.",
   },
   {
     id: "sigir",
@@ -417,9 +415,9 @@ export const conferences: Conference[] = [
     name: "ACM International Conference on Web Search and Data Mining",
     acronym: "WSDM",
     area: "Data Mining & IR",
-    location: "Hong Kong",
-    website: "https://www.wsdm-conference.org/2027/",
-    submissionLink: "https://www.wsdm-conference.org/2027/",
+    location: "Cordis Hong Kong, Mong Kok",
+    website: "https://wsdm-conference.org/2027/",
+    submissionLink: "https://wsdm-conference.org/2027/cffp.html",
     deadline: {
       year: 2026,
       month: 8,
@@ -428,7 +426,7 @@ export const conferences: Conference[] = [
       minute: 59,
       offset: "-12:00",
     },
-    note: "WSDM 2027 full-paper deadline: Aug 24, 2026; abstracts due Aug 17, 2026 (AoE).",
+    note: "WSDM 2027 full-paper deadline: Aug 24, 2026; abstracts due Aug 17, 2026 (AoE). The conference is Feb 15–19 at Cordis Hong Kong, Mong Kok.",
   },
   {
     id: "acmmm",
@@ -464,7 +462,7 @@ export const conferences: Conference[] = [
       offset: "+00:00",
       estimated: true,
     },
-    note: "SIGGRAPH 2027 will be in Anaheim; CFP pending. Estimate uses the SIGGRAPH 2026 Technical Papers deadline (Jan 22, 2026, 22:00 UTC).",
+    note: "SIGGRAPH 2027 is Aug 8–12 in Anaheim; CFP pending. Estimate uses the SIGGRAPH 2026 Technical Papers deadline (Jan 22, 2026, 22:00 UTC).",
   },
   {
     id: "facct",
@@ -482,7 +480,7 @@ export const conferences: Conference[] = [
       minute: 59,
       offset: "-12:00",
     },
-    note: "FAccT 2027 paper submission: Nov 3, 2026; abstract due Oct 27, 2026. Conference venue is TBA.",
+    note: "FAccT 2027 paper submission: Nov 3, 2026; abstract due Oct 27, 2026. The conference is Jun 21–24, 2027; venue is TBA.",
   },
   {
     id: "www",
