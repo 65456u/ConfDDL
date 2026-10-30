@@ -15,6 +15,27 @@ export interface ConferenceDeadline {
   estimated?: boolean;
 }
 
+export interface AcceptanceRate {
+  /** Conference edition the published acceptance statistics describe */
+  edition: number;
+  /** Acceptance rate as a percentage, e.g. 24.5 for 24.5% */
+  rate: number;
+  /** Track or program scope of the statistic */
+  scope: string;
+  /** Official report or conference page supporting the value */
+  sourceUrl: string;
+  /** True when the official source describes the rate as approximate */
+  approximate?: boolean;
+  /** True when calculated from accepted and submitted counts in the source */
+  calculated?: boolean;
+  /** Official submission volume; may cover a broader scope than the rate */
+  submissionCount?: number;
+  /** Label clarifying the scope of the submission volume */
+  submissionCountScope?: string;
+  accepted?: number;
+  submissions?: number;
+}
+
 export interface Conference {
   id: string;
   name: string;
@@ -27,6 +48,7 @@ export interface Conference {
   note?: string;
   isRolling?: boolean;
   deadline?: ConferenceDeadline;
+  acceptanceRate?: AcceptanceRate;
 }
 
 export const areaOrder = [
@@ -46,6 +68,14 @@ export const conferences: Conference[] = [
     name: "Conference on Neural Information Processing Systems",
     acronym: "NeurIPS",
     area: "Machine Learning",
+    acceptanceRate: {
+      edition: 2025,
+      rate: 24.52,
+      scope: "Main track",
+      sourceUrl: "https://blog.neurips.cc/2025/09/30/",
+      submissionCount: 21575,
+      submissionCountScope: "valid main-track submissions",
+    },
     location: "Europe (city TBA)",
     website: "https://neurips.cc/Conferences/FutureMeetings",
     deadline: {
@@ -64,6 +94,16 @@ export const conferences: Conference[] = [
     name: "International Conference on Machine Learning",
     acronym: "ICML",
     area: "Machine Learning",
+    acceptanceRate: {
+      edition: 2026,
+      rate: 26.6,
+      scope: "Main track",
+      sourceUrl: "https://media.icml.cc/Conferences/ICML2026/ICML2026_Fact_Sheet.pdf",
+      calculated: true,
+      accepted: 6552,
+      submissions: 24661,
+      submissionCountScope: "main-track submissions",
+    },
     location: "South America",
     website: "https://icml.cc/Conferences/FutureMeetings",
     deadline: {
@@ -82,6 +122,14 @@ export const conferences: Conference[] = [
     name: "International Conference on Learning Representations",
     acronym: "ICLR",
     area: "Machine Learning",
+    acceptanceRate: {
+      edition: 2026,
+      rate: 27.4,
+      scope: "Overall",
+      sourceUrl: "https://blog.iclr.cc/2026/",
+      submissionCount: 19525,
+      submissionCountScope: "valid, format-compliant submissions",
+    },
     location: "California, USA",
     website: "https://iclr.cc/Conferences/2027",
     submissionLink: "https://iclr.cc/Conferences/2027/CallForPapers",
@@ -120,16 +168,16 @@ export const conferences: Conference[] = [
     area: "Machine Learning",
     location: "Tokyo, Japan",
     website: "https://learningtheory.org/colt2027/",
+    submissionLink: "https://learningtheory.org/colt2027/cfp.html",
     deadline: {
       year: 2027,
-      month: 2,
-      day: 4,
+      month: 1,
+      day: 29,
       hour: 23,
       minute: 59,
       offset: "-12:00",
-      estimated: true,
     },
-    note: "COLT 2027 will be in Tokyo, Japan, Jun 28–Jul 2; the official submission date is TBA. Estimate uses COLT 2026's Feb 4, 2026 deadline.",
+    note: "COLT 2027: paper deadline Jan 29, 2027 (AoE); conference Jun 28–Jul 2 in Tokyo, Japan.",
   },
   {
     id: "jmlr",
@@ -145,6 +193,15 @@ export const conferences: Conference[] = [
     name: "AAAI Conference on Artificial Intelligence",
     acronym: "AAAI",
     area: "Artificial Intelligence",
+    acceptanceRate: {
+      edition: 2026,
+      rate: 17.5,
+      scope: "Main track",
+      sourceUrl: "https://aaai.org/wp-content/uploads/2026/01/AAAI-26-Opening-Ceremony.pdf",
+      approximate: true,
+      submissionCount: 30948,
+      submissionCountScope: "total submissions",
+    },
     location: "Montreal, Canada",
     website: "https://aaai.org/conference/aaai/aaai-27/",
     submissionLink: "https://aaai.org/conference/aaai/aaai-27/main-technical-track-call/",
@@ -163,18 +220,27 @@ export const conferences: Conference[] = [
     name: "International Joint Conference on Artificial Intelligence",
     acronym: "IJCAI",
     area: "Artificial Intelligence",
+    acceptanceRate: {
+      edition: 2026,
+      rate: 13.5,
+      scope: "All tracks",
+      sourceUrl: "https://2026.ijcai.org/press/",
+      calculated: true,
+      accepted: 858,
+      submissions: 6342,
+    },
     location: "Kyoto, Japan; Hengqin, China",
-    website: "https://www.ijcai.org/future_conferences",
+    website: "https://2027.ijcai.org/",
+    submissionLink: "https://2027.ijcai.org/ijcai-2027-call-for-papers-main-track/",
     deadline: {
       year: 2027,
       month: 1,
-      day: 19,
+      day: 11,
       hour: 23,
       minute: 59,
       offset: "-12:00",
-      estimated: true,
     },
-    note: "IJCAI-27: Aug 7–13, 2027 in Kyoto, followed by a satellite event Aug 15–17 in Hengqin. CFP and deadline are TBA; deadline estimate uses IJCAI-ECAI 2026's Jan 19 full-paper deadline.",
+    note: "IJCAI-27 main track: abstract due Jan 4 and full paper due Jan 11, 2027 (AoE). The conference is Aug 7–13 in Kyoto, followed by a satellite event Aug 15–17 in Hengqin.",
   },
   {
     id: "uai",
@@ -199,6 +265,14 @@ export const conferences: Conference[] = [
     name: "International Conference on Autonomous Agents and Multiagent Systems",
     acronym: "AAMAS",
     area: "Artificial Intelligence",
+    acceptanceRate: {
+      edition: 2026,
+      rate: 25.5,
+      scope: "Full papers",
+      sourceUrl: "https://www.ifaamas.org/Proceedings/aamas2026/pdfs/welcome.pdf",
+      submissionCount: 1842,
+      submissionCountScope: "main-track abstracts",
+    },
     location: "JW Marriott Hotel Hanoi, Vietnam",
     website: "https://warwick.ac.uk/fac/sci/dcs/aamas2027/",
     submissionLink: "https://warwick.ac.uk/fac/sci/dcs/aamas2027/calls/",
@@ -217,6 +291,16 @@ export const conferences: Conference[] = [
     name: "IEEE Conference on Computer Vision and Pattern Recognition",
     acronym: "CVPR",
     area: "Computer Vision",
+    acceptanceRate: {
+      edition: 2026,
+      rate: 25.4,
+      scope: "Main program",
+      sourceUrl: "https://cvpr.thecvf.com/Conferences/2026/News/Technical_Program",
+      calculated: true,
+      accepted: 4089,
+      submissions: 16092,
+      submissionCountScope: "main-program submissions",
+    },
     location: "Seattle, Washington, USA",
     website: "https://cvpr.thecvf.com/",
     submissionLink: "https://cvpr.thecvf.com/Conferences/2027/CallForPapers",
@@ -235,8 +319,17 @@ export const conferences: Conference[] = [
     name: "IEEE/CVF International Conference on Computer Vision",
     acronym: "ICCV",
     area: "Computer Vision",
+    acceptanceRate: {
+      edition: 2025,
+      rate: 24,
+      scope: "Main conference",
+      sourceUrl: "https://media.eventhosts.cc/Conferences/ICCV2025/iccv25_main_program.pdf",
+      accepted: 2701,
+      submissions: 11239,
+      submissionCountScope: "valid submissions",
+    },
     location: "Hong Kong",
-    website: "https://www.thecvf.com/?p=137",
+    website: "https://iccv.thecvf.com/Conferences/2027",
     note: "ICCV 2027 will be held Oct 2–8 in Hong Kong; the CFP and paper deadline have not been announced.",
   },
   {
@@ -244,6 +337,16 @@ export const conferences: Conference[] = [
     name: "European Conference on Computer Vision",
     acronym: "ECCV",
     area: "Computer Vision",
+    acceptanceRate: {
+      edition: 2024,
+      rate: 27.8,
+      scope: "Main papers",
+      sourceUrl: "https://eccv.ecva.net/media/eccv-2024/Slides/2822.pdf",
+      calculated: true,
+      accepted: 2387,
+      submissions: 8585,
+      submissionCountScope: "valid submissions",
+    },
     location: "Malmö, Sweden",
     website: "https://eccv.ecva.net/Conferences/2026",
     note: "ECCV 2026 main submissions are closed; the conference is Sep 8-12 in Malmö. The next ECCV cycle is 2028.",
@@ -271,36 +374,44 @@ export const conferences: Conference[] = [
     name: "Annual Meeting of the Association for Computational Linguistics",
     acronym: "ACL",
     area: "Natural Language Processing",
+    acceptanceRate: {
+      edition: 2025,
+      rate: 20.3,
+      scope: "Main conference",
+      sourceUrl: "https://www.aclweb.org/adminwiki/index.php/2025Q3_Reports:_Program_Chairs",
+      submissionCount: 8360,
+      submissionCountScope: "unique ARR submissions",
+    },
     location: "Kyoto, Japan",
     website: "https://2027.aclweb.org/",
+    submissionLink: "https://2027.aclweb.org/calls/main/",
     deadline: {
       year: 2027,
       month: 1,
-      day: 5,
+      day: 4,
       hour: 23,
       minute: 59,
       offset: "-12:00",
-      estimated: true,
     },
-    note: "ACL 2027 is Aug 17–22 in Kyoto; ARR and commitment dates remain TBA. Estimate uses the ACL 2026 ARR submission deadline (Jan 5, 2026).",
+    note: "ACL 2027: ARR submission deadline Jan 4, 2027 (AoE); commitment deadline TBA. The conference is Aug 17–22 in Kyoto.",
   },
   {
     id: "emnlp",
     name: "Conference on Empirical Methods in Natural Language Processing",
     acronym: "EMNLP",
     area: "Natural Language Processing",
-    location: "Budapest, Hungary",
+    location: "TBD",
     website: "https://2026.emnlp.org/",
-    submissionLink: "https://2026.emnlp.org/calls/main_conference_papers/",
     deadline: {
-      year: 2026,
-      month: 8,
-      day: 2,
+      year: 2027,
+      month: 5,
+      day: 25,
       hour: 23,
       minute: 59,
       offset: "-12:00",
+      estimated: true,
     },
-    note: "EMNLP 2026 commitment deadline: Aug 2, 2026. ARR submission deadline was May 25, 2026.",
+    note: "EMNLP 2027 venue and submission dates are TBA; estimate uses the EMNLP 2026 ARR submission deadline (May 25, 2026). The linked site is for EMNLP 2026.",
   },
   {
     id: "tacl",
@@ -318,16 +429,16 @@ export const conferences: Conference[] = [
     area: "Robotics",
     location: "Athens, Greece",
     website: "https://roboticsconference.org/",
+    submissionLink: "https://roboticsconference.org/information/cfp/",
     deadline: {
-      year: 2027,
-      month: 1,
-      day: 30,
+      year: 2026,
+      month: 12,
+      day: 4,
       hour: 23,
       minute: 59,
       offset: "-12:00",
-      estimated: true,
     },
-    note: "RSS 2027 is Jul 6–11 in Athens; CFP pending. Estimate uses the RSS 2026 paper deadline (Jan 30, 2026; abstract due Jan 23, 2026).",
+    note: "RSS 2027: extended abstracts due Dec 4, 2026 (AoE); invited final papers due Apr 16, 2027 after two review stages. The conference is Jul 6–11 in Athens.",
   },
   {
     id: "corl",
@@ -390,25 +501,26 @@ export const conferences: Conference[] = [
       minute: 59,
       offset: "-12:00",
     },
-    note: "KDD 2027 Research Track first cycle: abstract due Jul 19, 2026; paper due Jul 26, 2026 (AoE). The conference is Aug 1–5 at San Jose McEnery Convention Center; the second-cycle dates are TBA.",
+    note: "KDD 2027 Research Track first cycle: abstract due Jul 19, 2026; paper due Jul 26, 2026 (AoE). The conference is Aug 1–5 at San Jose McEnery Convention Center; the second cycle is in February 2027, with exact dates TBA.",
   },
   {
     id: "sigir",
     name: "ACM SIGIR Conference on Research and Development in Information Retrieval",
     acronym: "SIGIR",
     area: "Data Mining & IR",
-    location: "Silicon Valley, CA, USA",
-    website: "https://sigir.org/",
+    location: "San Jose, CA, USA",
+    website: "https://sigir2027.org/",
+    submissionLink: "https://sigir2027.org/pages/submit-full.html",
     deadline: {
       year: 2027,
       month: 1,
-      day: 22,
+      day: 21,
       hour: 23,
       minute: 59,
       offset: "-12:00",
       estimated: true,
     },
-    note: "SIGIR 2027 will be in Silicon Valley; CFP pending. Estimate uses the SIGIR 2026 full-paper deadline (Jan 22, 2026; abstract due Jan 15, 2026).",
+    note: "SIGIR 2027 full-paper dates are proposed: abstract due Jan 14 and paper due Jan 21, 2027 (AoE). The conference is Jul 19–24 in San Jose; confirm dates with the organizers.",
   },
   {
     id: "wsdm",
@@ -433,6 +545,15 @@ export const conferences: Conference[] = [
     name: "ACM International Conference on Multimedia",
     acronym: "ACM MM",
     area: "Graphics & Multimedia",
+    acceptanceRate: {
+      edition: 2025,
+      rate: 23.45,
+      scope: "Research track",
+      sourceUrl: "https://www.acmmm.org/",
+      accepted: 1250,
+      submissions: 5330,
+      submissionCountScope: "reviewed research papers",
+    },
     location: "Hong Kong",
     website: "https://www.acmmm.org/",
     deadline: {
@@ -452,24 +573,33 @@ export const conferences: Conference[] = [
     acronym: "SIGGRAPH",
     area: "Graphics & Multimedia",
     location: "Anaheim, CA, USA",
-    website: "https://www.siggraph.org/",
+    website: "https://s2027.siggraph.org/",
+    submissionLink: "https://s2027.siggraph.org/program/technical-papers/",
     deadline: {
       year: 2027,
       month: 1,
-      day: 22,
+      day: 28,
       hour: 22,
       minute: 0,
       offset: "+00:00",
-      estimated: true,
     },
-    note: "SIGGRAPH 2027 is Aug 8–12 in Anaheim; CFP pending. Estimate uses the SIGGRAPH 2026 Technical Papers deadline (Jan 22, 2026, 22:00 UTC).",
+    note: "SIGGRAPH 2027 Technical Papers: submission form and conflicts due Jan 21, paper due Jan 28, and upload due Jan 29, 2027, each at 22:00 UTC. The conference is Aug 8–12 in Anaheim.",
   },
   {
     id: "facct",
     name: "ACM Conference on Fairness, Accountability, and Transparency",
     acronym: "ACM FAccT",
     area: "Responsible AI & Society",
-    location: "TBD",
+    acceptanceRate: {
+      edition: 2026,
+      rate: 33,
+      scope: "Full papers",
+      sourceUrl: "https://facct-blog.github.io/2026-06-22/review-process",
+      accepted: 325,
+      submissions: 985,
+      submissionCountScope: "full paper submissions",
+    },
+    location: "Porto, Portugal",
     website: "https://facctconference.org/",
     submissionLink: "https://facctconference.org/2027/cfp.html",
     deadline: {
@@ -480,13 +610,22 @@ export const conferences: Conference[] = [
       minute: 59,
       offset: "-12:00",
     },
-    note: "FAccT 2027 paper submission: Nov 3, 2026; abstract due Oct 27, 2026. The conference is Jun 21–24, 2027; venue is TBA.",
+    note: "FAccT 2027 paper submission: Nov 3, 2026; abstract due Oct 27, 2026. The conference is Jun 21–24, 2027 in Porto; venue details are TBA.",
   },
   {
     id: "www",
     name: "ACM Web Conference (The Web Conference)",
     acronym: "WebConf",
     area: "Responsible AI & Society",
+    acceptanceRate: {
+      edition: 2024,
+      rate: 20.2,
+      scope: "Research program",
+      sourceUrl: "https://sigir.org/wp-content/uploads/2025/01/p05.pdf",
+      calculated: true,
+      accepted: 405,
+      submissions: 2008,
+    },
     location: "Dublin, Ireland",
     website: "https://www2027.thewebconf.org/",
     submissionLink: "https://www2027.thewebconf.org/research-track-papers/",

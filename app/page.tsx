@@ -17,7 +17,9 @@ type SortKey =
   | "acronym"
   | "deadline"
   | "countdown"
-  | "location";
+  | "location"
+  | "acceptanceRate"
+  | "submissions";
 type SortDirection = "asc" | "desc";
 
 interface SortState {
@@ -113,6 +115,18 @@ function formatCountdown(target: Date, now: Date, estimated = false): string {
   return `${minutes}m ${seconds}s`;
 }
 
+function formatAcceptanceRate(rate: number): string {
+  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(rate)}%`;
+}
+
+function submissionCountFor(conf: Conference): number | undefined {
+  return conf.acceptanceRate?.submissionCount ?? conf.acceptanceRate?.submissions;
+}
+
+function formatSubmissionCount(count: number): string {
+  return new Intl.NumberFormat("en-US").format(count);
+}
+
 function deadlineRank(date: Date | null, now: Date): number {
   if (!date) return 2;
   return date.getTime() > now.getTime() ? 0 : 1;
@@ -187,6 +201,26 @@ function compareConferences(
         (a.location ?? "").localeCompare(b.location ?? "") ||
         a.acronym.localeCompare(b.acronym);
       return direction * result;
+    }
+    case "acceptanceRate": {
+      const rateA = a.acceptanceRate?.rate;
+      const rateB = b.acceptanceRate?.rate;
+      if (rateA === undefined && rateB !== undefined) return 1;
+      if (rateB === undefined && rateA !== undefined) return -1;
+      if (rateA === undefined || rateB === undefined) {
+        return direction * a.acronym.localeCompare(b.acronym);
+      }
+      return direction * (rateA - rateB || a.acronym.localeCompare(b.acronym));
+    }
+    case "submissions": {
+      const countA = submissionCountFor(a);
+      const countB = submissionCountFor(b);
+      if (countA === undefined && countB !== undefined) return 1;
+      if (countB === undefined && countA !== undefined) return -1;
+      if (countA === undefined || countB === undefined) {
+        return direction * a.acronym.localeCompare(b.acronym);
+      }
+      return direction * (countA - countB || a.acronym.localeCompare(b.acronym));
     }
     case "deadline":
     case "countdown": {
@@ -404,6 +438,7 @@ export default function Home() {
         ? formatCountdown(deadlineDate, now, conf.deadline.estimated)
         : null;
     const locationHref = getLocationHref(conf.location, conf.locationUrl);
+    const submissionCount = submissionCountFor(conf);
 
     const rowKey = areaLabel
       ? `${conf.id}-${slugify(areaLabel)}`
@@ -412,13 +447,13 @@ export default function Home() {
     return (
       <tr key={rowKey} className="hover:bg-slate-50/70">
         {areaLabel && (
-          <td className="px-6 py-4 text-sm text-slate-600">
+          <td className="px-4 py-4 text-sm text-slate-600">
             <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
               {areaLabel}
             </span>
           </td>
         )}
-        <td className="max-w-[18rem] px-6 py-4">
+        <td className="max-w-[18rem] px-4 py-4">
           <div className="flex flex-col">
             <span className="font-semibold text-slate-900">
               {conf.acronym}
@@ -446,7 +481,7 @@ export default function Home() {
             </div>
           </div>
         </td>
-        <td className="px-6 py-4 text-sm text-slate-700">
+        <td className="px-4 py-4 text-sm text-slate-700">
           {conf.isRolling && (
             <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
               Rolling
@@ -467,14 +502,14 @@ export default function Home() {
             <span className="text-slate-500">TBA</span>
           )}
         </td>
-        <td className="px-6 py-4 text-sm font-semibold text-emerald-600">
+        <td className="px-4 py-4 text-sm font-semibold text-emerald-600">
           {conf.isRolling
             ? "Always open"
             : conf.deadline
               ? countdown ?? "Loading…"
               : "TBA"}
         </td>
-        <td className="px-6 py-4 text-sm text-slate-600">
+        <td className="px-4 py-4 text-sm text-slate-600">
           {conf.location ? (
             locationHref ? (
               <Link
@@ -495,6 +530,62 @@ export default function Home() {
             "—"
           )}
         </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm">
+          {conf.acceptanceRate ? (
+            <a
+              href={conf.acceptanceRate.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              title={`${conf.acronym} ${conf.acceptanceRate.edition}: ${conf.acceptanceRate.approximate ? "approximately " : ""}${formatAcceptanceRate(conf.acceptanceRate.rate)}${conf.acceptanceRate.calculated && conf.acceptanceRate.accepted !== undefined && conf.acceptanceRate.submissions !== undefined ? `, calculated from ${conf.acceptanceRate.accepted.toLocaleString()} accepted out of ${conf.acceptanceRate.submissions.toLocaleString()} submissions` : ""}. Official source.`}
+              className="group inline-flex flex-col items-start gap-1 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+            >
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700 transition group-hover:bg-emerald-100">
+                {conf.acceptanceRate.approximate ? "~" : ""}
+                {formatAcceptanceRate(conf.acceptanceRate.rate)}
+              </span>
+              <span className="text-[11px] leading-tight text-slate-500">
+                {conf.acceptanceRate.edition} · {conf.acceptanceRate.scope}
+                {conf.acceptanceRate.calculated ? " · calc." : ""}
+              </span>
+            </a>
+          ) : conf.isRolling ? (
+            <span
+              className="text-slate-400"
+              title="Not applicable to journals with rolling submissions"
+            >
+              N/A
+            </span>
+          ) : (
+            <span
+              className="text-slate-400"
+              title="No verified official rate listed"
+            >
+              —
+            </span>
+          )}
+        </td>
+        <td className="px-4 py-4 text-sm">
+          {conf.acceptanceRate && submissionCount !== undefined ? (
+            <a
+              href={conf.acceptanceRate.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              title={`${conf.acronym} ${conf.acceptanceRate.edition}: ${formatSubmissionCount(submissionCount)} ${conf.acceptanceRate.submissionCountScope ?? conf.acceptanceRate.scope}. Official source.`}
+              className="group inline-flex max-w-36 flex-col items-start gap-1 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+            >
+              <span className="whitespace-nowrap font-semibold text-slate-800 transition group-hover:text-emerald-700">
+                {formatSubmissionCount(submissionCount)}
+              </span>
+              <span className="text-[11px] leading-tight text-slate-500">
+                {conf.acceptanceRate.edition} · {conf.acceptanceRate.submissionCountScope ?? conf.acceptanceRate.scope}
+              </span>
+            </a>
+          ) : (
+            <span className="text-slate-400" title="No verified official count listed">
+              —
+            </span>
+          )}
+        </td>
       </tr>
     );
   };
@@ -502,7 +593,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-100 pb-16">
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">
               Conference Deadlines
@@ -511,6 +602,11 @@ export default function Home() {
               Track submission timelines for top AI, ML, robotics, and related
               venues. Official dates are shown where published; estimates are
               labeled—always confirm details on the conference website.
+            </p>
+            <p className="mt-2 max-w-xl text-xs text-slate-500">
+              Rates and submission counts show the latest verified edition and scope;
+              select a figure for its official source. — means no verified
+              official figure is listed; rolling journals show N/A for rate.
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 md:max-w-sm md:items-end">
@@ -585,7 +681,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="mx-auto mt-10 flex max-w-6xl flex-col gap-12 px-6">
+      <main className="mx-auto mt-10 flex max-w-7xl flex-col gap-12 px-6">
         {viewMode === "combined" ? (
           <section className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -600,13 +696,13 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <table className="min-w-full divide-y divide-slate-200">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <table className="min-w-[1100px] divide-y divide-slate-200">
                 <thead className="bg-slate-50">
                   <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <th
                       scope="col"
-                      className="px-6 py-3"
+                      className="px-4 py-3"
                       aria-sort={ariaSortFor("area")}
                     >
                       <button
@@ -623,7 +719,7 @@ export default function Home() {
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3"
+                      className="px-4 py-3"
                       aria-sort={ariaSortFor("acronym")}
                     >
                       <button
@@ -640,7 +736,7 @@ export default function Home() {
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3"
+                      className="px-4 py-3"
                       aria-sort={ariaSortFor("deadline")}
                     >
                       <button
@@ -657,7 +753,7 @@ export default function Home() {
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3"
+                      className="px-4 py-3"
                       aria-sort={ariaSortFor("countdown")}
                     >
                       <button
@@ -674,7 +770,7 @@ export default function Home() {
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3"
+                      className="px-4 py-3"
                       aria-sort={ariaSortFor("location")}
                     >
                       <button
@@ -685,6 +781,40 @@ export default function Home() {
                         Location
                         <SortIndicator
                           active={sort.key === "location"}
+                          direction={sort.direction}
+                        />
+                      </button>
+                    </th>
+                    <th
+                      scope="col"
+                      className="whitespace-nowrap px-4 py-3"
+                      aria-sort={ariaSortFor("acceptanceRate")}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleSort("acceptanceRate")}
+                        className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-wide transition hover:text-emerald-600 ${sort.key === "acceptanceRate" ? "text-emerald-600" : "text-slate-500"}`}
+                      >
+                        Accept rate
+                        <SortIndicator
+                          active={sort.key === "acceptanceRate"}
+                          direction={sort.direction}
+                        />
+                      </button>
+                    </th>
+                    <th
+                      scope="col"
+                      className="whitespace-nowrap px-4 py-3"
+                      aria-sort={ariaSortFor("submissions")}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleSort("submissions")}
+                        className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-wide transition hover:text-emerald-600 ${sort.key === "submissions" ? "text-emerald-600" : "text-slate-500"}`}
+                      >
+                        Submissions
+                        <SortIndicator
+                          active={sort.key === "submissions"}
                           direction={sort.direction}
                         />
                       </button>
@@ -716,13 +846,13 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="min-w-full divide-y divide-slate-200">
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <table className="min-w-[960px] divide-y divide-slate-200">
                   <thead className="bg-slate-50">
                     <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                       <th
                         scope="col"
-                        className="px-6 py-3"
+                        className="px-4 py-3"
                         aria-sort={ariaSortFor("acronym")}
                       >
                         <button
@@ -739,7 +869,7 @@ export default function Home() {
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3"
+                        className="px-4 py-3"
                         aria-sort={ariaSortFor("deadline")}
                       >
                         <button
@@ -756,7 +886,7 @@ export default function Home() {
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3"
+                        className="px-4 py-3"
                         aria-sort={ariaSortFor("countdown")}
                       >
                         <button
@@ -773,7 +903,7 @@ export default function Home() {
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3"
+                        className="px-4 py-3"
                         aria-sort={ariaSortFor("location")}
                       >
                         <button
@@ -784,6 +914,40 @@ export default function Home() {
                           Location
                           <SortIndicator
                             active={sort.key === "location"}
+                            direction={sort.direction}
+                          />
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        className="whitespace-nowrap px-4 py-3"
+                        aria-sort={ariaSortFor("acceptanceRate")}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleSort("acceptanceRate")}
+                          className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-wide transition hover:text-emerald-600 ${sort.key === "acceptanceRate" ? "text-emerald-600" : "text-slate-500"}`}
+                        >
+                          Accept rate
+                          <SortIndicator
+                            active={sort.key === "acceptanceRate"}
+                            direction={sort.direction}
+                          />
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        className="whitespace-nowrap px-4 py-3"
+                        aria-sort={ariaSortFor("submissions")}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleSort("submissions")}
+                          className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-wide transition hover:text-emerald-600 ${sort.key === "submissions" ? "text-emerald-600" : "text-slate-500"}`}
+                        >
+                          Submissions
+                          <SortIndicator
+                            active={sort.key === "submissions"}
                             direction={sort.direction}
                           />
                         </button>
